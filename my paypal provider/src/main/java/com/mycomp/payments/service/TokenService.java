@@ -12,9 +12,11 @@ import org.springframework.util.MultiValueMap;
 import com.mycomp.payments.constant.Constant;
 import com.mycomp.payments.http.HttpRequest;
 import com.mycomp.payments.http.HttpServiceEngine;
+import com.mycomp.payments.paypal.res.PaypalOAuthToken;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import tools.jackson.databind.ObjectMapper;
 
 @Service
 @Slf4j
@@ -22,6 +24,8 @@ import lombok.extern.slf4j.Slf4j;
 public class TokenService {
 	
 private final HttpServiceEngine httpServiceEngine;
+
+private final ObjectMapper objectMapper;
 	
 	//TODO, implement Redis based and take care of expiry
 	private static String accessToken; 
@@ -66,7 +70,11 @@ private final HttpServiceEngine httpServiceEngine;
 		
 		String tokenBody = response.getBody();
 		
-		return tokenBody;
+		PaypalOAuthToken token = objectMapper.readValue(
+				tokenBody, PaypalOAuthToken.class);
+		
+		log.info("Parsed OAuth token response: {}", token);
+		return token.getAccessToken();
 	}
 
 }
