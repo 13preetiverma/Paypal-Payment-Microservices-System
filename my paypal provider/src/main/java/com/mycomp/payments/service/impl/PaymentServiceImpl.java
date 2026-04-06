@@ -1,109 +1,66 @@
 package com.mycomp.payments.service.impl;
-import java.util.Collections;
-
-import org.springframework.http.HttpHeaders;
-import org.springframework.http.MediaType;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 
-import com.mycomp.payments.constant.Constant;
-import com.mycomp.payments.paypal.req.Amount;
-import com.mycomp.payments.paypal.req.ExperienceContext;
-import com.mycomp.payments.paypal.req.OrderRequest;
-import com.mycomp.payments.paypal.req.PaymentSource;
-import com.mycomp.payments.paypal.req.Paypal;
-import com.mycomp.payments.paypal.req.PurchaseUnit;
+import com.mycomp.payments.http.HttpRequest;
+import com.mycomp.payments.http.HttpServiceEngine;
+import com.mycomp.payments.paypal.res.PaypalOrderRes;
 import com.mycomp.payments.pojo.CreateOrderReq;
+import com.mycomp.payments.pojo.OrderResponse;
 import com.mycomp.payments.service.TokenService;
+import com.mycomp.payments.service.helper.CreateOrderHelper;
 import com.mycomp.payments.service.interfaces.PaymentService;
+import com.mycomp.payments.util.JsonUtil;
 
 import jakarta.annotation.PostConstruct;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import tools.jackson.databind.ObjectMapper;
 
 @Service
 @Slf4j
 @RequiredArgsConstructor
 public class PaymentServiceImpl implements PaymentService {
 	
-	private final TokenService tokenService;
-	private final ObjectMapper objectMapper;
+    private final TokenService tokenService;
+	
+	private final HttpServiceEngine httpServiceEngine;
+	
+	private final JsonUtil jsonUtil;
+	
+	@Value("${paypal.create.order.url}")
+	private String createOrderUrl;
+	
+	private final CreateOrderHelper createOrderHelper;
 	
 	
 	@Override
-	public String createOrder() {
-		log.info("Creating order in PaymentServiceImpl");
+	public OrderResponse createOrder(CreateOrderReq createOrderReq) {
+		log.info("Creating order in PaymentServiceImpl|| createOrderReq:{}",
+				createOrderReq);
 		
 		String accessToken = tokenService.getAccessToken();
 		log.info("Access token retrieved: {}", accessToken);
 		
-		/* TODO 
-		 	1. getAccessToken (OAuth)
-			2. Call paypal createOrder
-			3. Success/Failure/TimeOut - Proper response handling
-			4. What to return to your calling service (payment-processing-service)
-		 */
+		HttpRequest httpRequest = createOrderHelper.prepareCreateOrderHttpRequest(
+				createOrderReq, accessToken);
+		log.info("Prepared HttpRequest for OAuth call: {}", httpRequest);
 		
+		ResponseEntity<String> successResponse = httpServiceEngine.makeHttpCall(httpRequest);
+		log.info("HTTP response from HttpServiceEngine: {}", successResponse);
+
+		PaypalOrderRes paypalOrderRes = jsonUtil.fromJson(
+				successResponse.getBody(), PaypalOrderRes.class);
+		log.info("Converted response body to PaypalOrder: {}", paypalOrderRes);
 		
-		HttpHeaders headers = new HttpHeaders();
-		headers.setBearerAuth(accessToken);
-		headers.setContentType(MediaType.APPLICATION_JSON);
-		//set payment-request-id with uuid
-		String uuid = java.util.UUID.randomUUID().toString();
-		headers.add("payment-request-id", uuid);
+		// TODO Failure/TimeOut - Proper response handling
+
+		OrderResponse orderResponse = createOrderHelper.toOrderResponse(paypalOrderRes);
+		log.info("Converted OrderResponse: {}", orderResponse);
 		
-	
-		
-		/*httpRequest body */
-		// Create amount object
-				Amount amount = new Amount();
-				amount.setCurrencyCode("USD");
-				amount.setValue("1.50");
-
-				// read the amount from createOrderReq and convert to 2 decimal places format string
-				//String amtStr = String.format(Constant.TWO_DECIMAL_FORMAT, createOrderReq.getAmount());
-				//amount.setValue(amtStr);
-
-				// Create purchase unit
-				PurchaseUnit unit = new PurchaseUnit();
-				unit.setAmount(amount);
-
-				// Experience context
-				ExperienceContext ctx = new ExperienceContext();
-				ctx.setPaymentMethodPreference(Constant.IMMEDIATE_PAYMENT_REQUIRED);
-				ctx.setLandingPage(Constant.LANDINGPAGE_LOGIN);
-				ctx.setShippingPreference(Constant.SHIPPING_PREF_NO_SHIPPING);
-				ctx.setUserAction(Constant.USER_ACTION_PAY_NOW);
-				ctx.setReturnUrl("http://localhost:8080/payments/success");
-				ctx.setCancelUrl("http://localhost:8080/payments/cancel");
-
-				// Paypal object
-				Paypal paypal = new Paypal();
-				paypal.setExperienceContext(ctx);
-
-				// Payment source
-				PaymentSource ps = new PaymentSource();
-				ps.setPaypal(paypal);
-
-				// Final order request
-				OrderRequest order = new OrderRequest();
-				order.setIntent(Constant.INTENT_CAPTURE);
-				order.setPurchaseUnits(Collections.singletonList(unit));
-				order.setPaymentSource(ps);
-
-				log.info("Constructed OrderRequest object: {}", order);
-				
-				// converting java obj to json
-				String jsonObj = objectMapper.writerWithDefaultPrettyPrinter() .writeValueAsString(order);
-				
-				return jsonObj;
-
-
-				
-
-		
-		//return "Order Created from service - " + accessToken;
+		return orderResponse;
 	}
+	
 	
 	public String method2() {
 		return "method2 called";

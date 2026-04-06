@@ -1,7 +1,10 @@
 package com.mycomp.payments.service.interfaces;
 
+import com.mycomp.payments.pojo.CreateOrderReq;
+import com.mycomp.payments.pojo.OrderResponse;
+
 public interface PaymentService {
 	
-	public String createOrder();
+	public OrderResponse createOrder(CreateOrderReq createOrderReq);
 
 }
