@@ -19,7 +19,7 @@ public class PaymentController {
 	
 private final PaymentService paymentService;
 	
-	@PostMapping("/payments")
+	@PostMapping("/orders")
 	public OrderResponse createOrder(@RequestBody CreateOrderReq createOrderReq) {
 		// TODO once the request & response is finalize, update this logic
 		
