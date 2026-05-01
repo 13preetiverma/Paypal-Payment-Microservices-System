@@ -8,6 +8,7 @@ import com.mycomp.payments.http.HttpServiceEngine;
 import com.mycomp.payments.paypal.res.PaypalOrderRes;
 import com.mycomp.payments.pojo.CreateOrderReq;
 import com.mycomp.payments.pojo.OrderResponse;
+import com.mycomp.payments.service.PaymentValidator;
 import com.mycomp.payments.service.TokenService;
 import com.mycomp.payments.service.helper.CreateOrderHelper;
 import com.mycomp.payments.service.interfaces.PaymentService;
@@ -25,6 +26,7 @@ public class PaymentServiceImpl implements PaymentService {
     private final TokenService tokenService;
 	
 	private final HttpServiceEngine httpServiceEngine;
+	private final PaymentValidator paymentValidator;
 	
 	private final JsonUtil jsonUtil;
 	
@@ -38,6 +40,9 @@ public class PaymentServiceImpl implements PaymentService {
 	public OrderResponse createOrder(CreateOrderReq createOrderReq) {
 		log.info("Creating order in PaymentServiceImpl|| createOrderReq:{}",
 				createOrderReq);
+		
+		paymentValidator.validateCreateOrder(createOrderReq);
+		
 		
 		String accessToken = tokenService.getAccessToken();
 		log.info("Access token retrieved: {}", accessToken);
@@ -53,7 +58,6 @@ public class PaymentServiceImpl implements PaymentService {
 				successResponse.getBody(), PaypalOrderRes.class);
 		log.info("Converted response body to PaypalOrder: {}", paypalOrderRes);
 		
-		// TODO Failure/TimeOut - Proper response handling
 
 		OrderResponse orderResponse = createOrderHelper.toOrderResponse(paypalOrderRes);
 		log.info("Converted OrderResponse: {}", orderResponse);

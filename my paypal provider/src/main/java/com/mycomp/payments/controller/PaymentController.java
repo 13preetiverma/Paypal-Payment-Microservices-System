@@ -1,5 +1,6 @@
 package com.mycomp.payments.controller;
 
+import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RestController;
@@ -21,7 +22,7 @@ private final PaymentService paymentService;
 	
 	@PostMapping("/orders")
 	public OrderResponse createOrder(@RequestBody CreateOrderReq createOrderReq) {
-		// TODO once the request & response is finalize, update this logic
+		
 		
 		log.info("Creating order in PayPal provider service:{}", createOrderReq);
 		
@@ -32,10 +33,14 @@ private final PaymentService paymentService;
 		
 	}
 	
-	@PostConstruct
-	void init() {
-		log.info("PaymentController initialized "
-				+ "paymentService:{}", paymentService);
+	@PostMapping("/{orderId}/capture")
+	public String captureOrder(@PathVariable String orderId) {
+		log.info("Capturing order in PayPal provider service"
+				+ "||orderId:{}",
+				orderId);
+		
+		
+		return "captured_rder";
 	}
  
 }
