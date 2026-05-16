@@ -14,7 +14,9 @@ public enum ErrorCodeEnum {
     PAYPAL_SERVICE_UNAVAILABLE("30006", "Paypal service is currently unavailable. Please try again later."),
     PAYPAL_ERROR("30007", "<Error as Paypal>"),
     PAYPAL_UNKNOWN_ERROR("30008", "Unknown error occurred while processing Paypal request"),
-    RESOURCE_NOT_FOUND("30009", "Invalid URL. Please check and try again.");
+    RESOURCE_NOT_FOUND("30009", "Invalid URL. Please check and try again."),
+	ORDER_NOT_APPROVED("30010","Order request is not approved by user.go to the redirect url and click on complete payment");
+	
 
     private final String errorCode;
     private final String errorMessage;

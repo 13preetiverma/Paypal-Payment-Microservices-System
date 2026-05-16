@@ -10,11 +10,11 @@ import com.mycomp.payments.pojo.CreateOrderReq;
 import com.mycomp.payments.pojo.OrderResponse;
 import com.mycomp.payments.service.PaymentValidator;
 import com.mycomp.payments.service.TokenService;
+import com.mycomp.payments.service.helper.CaptureOrderHelper;
 import com.mycomp.payments.service.helper.CreateOrderHelper;
 import com.mycomp.payments.service.interfaces.PaymentService;
 import com.mycomp.payments.util.JsonUtil;
 
-import jakarta.annotation.PostConstruct;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
@@ -34,6 +34,8 @@ public class PaymentServiceImpl implements PaymentService {
 	private String createOrderUrl;
 	
 	private final CreateOrderHelper createOrderHelper;
+	
+	private final CaptureOrderHelper captureOrderHelper;
 	
 	
 	@Override
@@ -65,13 +67,24 @@ public class PaymentServiceImpl implements PaymentService {
 		return orderResponse;
 	}
 	
-	
-	public String method2() {
-		return "method2 called";
-	}
-	
-	@PostConstruct
-	public void init() {
-		log.info("PaymentServiceImpl initialized");
+	@Override
+	public OrderResponse captureOrder(String orderId) {
+		log.info("Capturing order in PaymentServiceImpl|| orderId:{}",
+				orderId);
+		
+		String accessToken = tokenService.getAccessToken();
+		log.info("Access token retrieved: {}", accessToken);
+		
+		HttpRequest httpRequest = captureOrderHelper.prepareCaptureOrderHttpRequest(
+				orderId, accessToken);
+		log.info("Prepared HttpRequest for capturing order httpRequest: {}", httpRequest);
+		
+		ResponseEntity<String> httpResponse = httpServiceEngine.makeHttpCall(httpRequest);
+		log.info("HTTP response from HttpServiceEngine: {}", httpResponse);
+		
+		OrderResponse orderResponse = captureOrderHelper.handlePaypalResponse(httpResponse);
+		log.info("Final OrderResponse to be returned: {}", orderResponse);
+		
+		return orderResponse;
 	}
 }

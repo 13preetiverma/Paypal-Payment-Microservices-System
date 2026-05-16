@@ -7,4 +7,6 @@ public interface PaymentService {
 	
 	public OrderResponse createOrder(CreateOrderReq createOrderReq);
 
+	public OrderResponse captureOrder(String orderId);
+
 }

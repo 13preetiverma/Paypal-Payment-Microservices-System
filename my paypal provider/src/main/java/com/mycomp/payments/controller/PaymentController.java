@@ -3,24 +3,25 @@ package com.mycomp.payments.controller;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.mycomp.payments.pojo.CreateOrderReq;
 import com.mycomp.payments.pojo.OrderResponse;
 import com.mycomp.payments.service.interfaces.PaymentService;
 
-import jakarta.annotation.PostConstruct;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
 @RestController
 @Slf4j
 @RequiredArgsConstructor
+@RequestMapping("/orders")
 public class PaymentController {
 	
 private final PaymentService paymentService;
 	
-	@PostMapping("/orders")
+	@PostMapping
 	public OrderResponse createOrder(@RequestBody CreateOrderReq createOrderReq) {
 		
 		
@@ -34,13 +35,15 @@ private final PaymentService paymentService;
 	}
 	
 	@PostMapping("/{orderId}/capture")
-	public String captureOrder(@PathVariable String orderId) {
+	public OrderResponse captureOrder(@PathVariable String orderId) {
 		log.info("Capturing order in PayPal provider service"
 				+ "||orderId:{}",
 				orderId);
 		
+		OrderResponse response = paymentService.captureOrder(orderId);
+		log.info("Order capture response from service: {}", response);
 		
-		return "captured_rder";
+		return response;
 	}
  
 }
